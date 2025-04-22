@@ -1,3 +1,4 @@
+import os
 from datetime import date
 from typing import List
 from flask import Flask, abort, render_template, redirect, request, url_for, flash
@@ -11,10 +12,13 @@ from sqlalchemy import ForeignKey, Integer, String, Text
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "8BYkEfBA6O6donzWlSihBXox7C0sKR6b"
+app.config["SECRET_KEY"] = os.getenv("FLASK_KEY")
 ckeditor = CKEditor(app)
 Bootstrap5(app)
 
@@ -28,7 +32,7 @@ class Base(DeclarativeBase):
     pass
 
 
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///posts.db"
+app.config["SQLALCHEMY_DATABASE_URI"] = os.getenv("DB_URI")
 db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
@@ -79,19 +83,6 @@ class Comment(db.Model):
 
     post_id: Mapped[int] = mapped_column(Integer, ForeignKey("blog_posts.id"))
     parent_post = relationship("BlogPost", back_populates="comments")
-
-
-# For adding profile images to the comment section
-gravatar = Gravatar(
-    app,
-    size=100,
-    rating="g",
-    default="retro",
-    force_default=False,
-    force_lower=False,
-    use_ssl=False,
-    base_url=None,
-)
 
 
 # Create a User table for all your registered users.
@@ -292,4 +283,4 @@ def contact():
 
 
 if __name__ == "__main__":
-    app.run(debug=True, port=5002)
+    app.run(debug=False)
